@@ -8,7 +8,7 @@ erraform {
 }
 provider "azurerm" {
   features {}
-  subscription_id = "202d4be6-e0dd-4b9e-84b7-e235d53271a8"
+  subscription_id = "7b5bc41a-d156-450e-bf00-1cfe69176584"
 }
 
 terraform {
