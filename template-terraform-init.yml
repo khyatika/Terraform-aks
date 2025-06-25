@@ -1,0 +1,20 @@
+parameters:
+  displayName: 'Terraform Init'
+  backendServiceArm: 'Azure subscription 1(76f3c62f-e8ff-4cba-8eb2-11e11a9c35e5)'
+
+steps:
+  - task: TerraformInstaller@1
+    displayName: 'Install Terraform'
+    inputs:
+      terraformVersion: 'latest'
+
+  - task: TerraformTaskV4@4
+    displayName: ${{ parameters.displayName }}
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      backendServiceArm: ${{ parameters.backendServiceArm }}
+      backendAzureRmResourceGroupName: 'NEWRG'
+      backendAzureRmStorageAccountName: 'azurekssvcd'
+      backendAzureRmContainerName: 'terraform'
+      backendAzureRmKey: 'terraform.tfstate'
