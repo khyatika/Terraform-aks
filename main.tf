@@ -1,12 +1,12 @@
 module "resource_group" {
-  source = "git::https://github.com/akshitg43/aks-modules.git//modules/resource_group?ref=main"
+  source = "git::https://github.com/khyatika/aks-modules.git//resource_group?ref=main"
   resource_group_name = var.resource_group_name
   location            = var.location
   tags                = var.tags
 }
 
 module "acr" {
-  source              = "git::https://github.com/akshitg43/aks-modules.git//modules/acr?ref=main"
+  source              = "git::https://github.com/khyatika/aks-modules.git//acr?ref=main"
  name                = var.acr_name
   resource_group_name = module.resource_group.resource_group_name
   location            = var.location
@@ -17,7 +17,7 @@ module "acr" {
 }
 
 module "network" {
- source = "git::https://github.com/akshitg43/aks-modules.git//modules/network?ref=main"
+ source = "git::https://github.com/khyatika/aks-modules.git//network?ref=main"
   vnet_name                       = var.vnet_name
   vnet_address_space              = var.vnet_address_space
   aks_subnet_name                 = var.aks_subnet_name
@@ -34,7 +34,7 @@ module "network" {
 module "aks" {
   system_node_pool    = var.system_node_pool
   user_node_pool      = var.user_node_pool
-  source = "git::https://github.com/akshitg43/aks-modules.git//modules/aks?ref=main"
+  source = "git::https://github.com/khyatika/aks-modules.git//aks?ref=main"
   resource_group_name = module.resource_group.resource_group_name
   location            = var.location
   cluster_name        = var.cluster_name
@@ -56,11 +56,18 @@ module "aks" {
   depends_on = [module.resource_group, module.acr]
 }
 
+resource "time_sleep" "wait_for_aks_identity" {
+  depends_on = [module.aks]
+  create_duration = "60s"
+}
+
 resource "azurerm_role_assignment" "aks_acr_pull" {
   role_definition_name = "AcrPull"
   principal_id         = module.aks.kubelet_identity[0].object_id
   scope                = module.acr.acr_id
   // scope                 = azurerm_container_registry.acr.id
-  depends_on           = [module.aks, module.acr]
+  depends_on           = [time_sleep.wait_for_aks_identity,module.aks, module.acr]
 }
+
+
 
