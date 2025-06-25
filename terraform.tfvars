@@ -1,24 +1,23 @@
-esource_group_name = "AKS"
-location            = "eastus2"
-acr_name            = "demoakscr"
+resource_group_name = "AKS"
+location            = "canadacentral"
+acr_name            = "projecttwoacr"
 acr_sku             = "Standard"
 acr_admin_enabled   = false
 
 cluster_name       = "demoaks"
 dns_prefix         = "demoaks-dns"
 kubernetes_version = "1.31.1"
-BalaKrishna Mali
-21:23
+
 default_node_pool = {
   name                 = "sp"
-  vm_size              = "Standard_D2als_v6"
+  vm_size              = "Standard_DS2_v2"
   enable_auto_scaling  = true
   min_count            = 1
   max_count            = 2
   max_pods             = 110
   os_disk_size_gb      = 30
-  zones                = ["1", "2", "3"]
-  orchestrator_version = "1.31.1"
+  zones                = ["2"]
+  orchestrator_version = "1.30.0"
 }
 network_profile = {
   network_plugin      = "azure"
@@ -44,9 +43,9 @@ system_node_pool = {
   vm_size             = "Standard_D2als_v6"
   os_disk_size_gb     = 30
   max_pods            = 110
-  zones               = ["1", "2", "3"]
   enable_auto_scaling = true
   min_count           = 1
+  zones                = ["2"]
   max_count           = 3
 }
 user_node_pool = {
@@ -55,12 +54,12 @@ user_node_pool = {
   node_count          = 1
   os_disk_size_gb     = 30
   max_pods            = 110
-  zones               = ["1", "2", "3"]
   enable_auto_scaling = true
   min_count           = 1
+  zones                = ["2"]
   max_count           = 3
 }
 service_cidr   = "10.240.0.0/16"
 dns_service_ip = "10.240.0.10"
-subscription_id = "7b5bc41a-d156-450e-bf00-1cfe69176584"
-terraform_principal_id = "f5fd9c61-9b6b-4a3b-9e52-890de60a803d"
+subscription_id = "76f3c62f-e8ff-4cba-8eb2-11e11a9c35e5"
+terraform_principal_id = "51c66ada-c054-486a-b6ee-e82e8db511c3"
