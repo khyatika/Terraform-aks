@@ -1,0 +1,91 @@
+trigger:
+  branches:
+    include:
+      - '*'  # Run pipeline on all branches (pushes)
+
+pr:
+  branches:
+    include:
+      - main  # Trigger only PR to main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: destroy_initiate
+    value: 'true'
+
+stages:
+  - stage: TerraformInit
+    displayName: 'Terraform Init'
+    jobs:
+      - job: Init
+        displayName: 'Initialize Terraform'
+        steps:
+          - template: .pipelines/templates/terraform-init.yml
+            parameters:
+              displayName: 'Terraform init with Azure Backend'
+              backendServiceArm: 'terraform-spn-akspipeline'  #service connection
+
+  - stage: TerraformValidate
+    displayName: 'Terraform Validate'
+    dependsOn: TerraformInit
+    condition: succeeded()
+    jobs:
+      - job: Validate
+        displayName: 'Validate Terraform Files'
+        steps:
+          - template: .pipelines/templates/terraform-init.yml
+            parameters:
+              displayName: 'Terraform init before validate'
+              backendServiceArm: 'terraform-spn-akspipeline'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Validate'
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+
+  - stage: TerraformPlan
+    displayName: 'Terraform Plan'
+    dependsOn: TerraformValidate
+    condition: succeeded()
+    jobs:
+      - job: Plan
+        displayName: 'Plan Terraform Deployment'
+        steps:
+          - template: .pipelines/templates/terraform-init.yml
+            parameters:
+              displayName: 'Terraform init before Plan'
+              backendServiceArm: 'terraform-spn-akspipeline'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Plan'
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              environmentServiceNameAzureRM: 'terraform-spn-akspipeline'
+              args: >
+                -input=false
+                -var="resource_group_name=NEWRG"
+
+  - stage: TerraformApply
+    displayName: 'Terraform Apply'
+    dependsOn: TerraformPlan
+    condition: succeeded()
+    jobs:
+      - job: Apply
+        displayName: 'Apply Terraform Changes'
+        steps:
+          - template: .pipelines/templates/terraform-init.yml
+            parameters:
+              displayName: 'Terraform init before Apply'
+              backendServiceArm: 'terraform-spn-akspipeline'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Apply'
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              environmentServiceNameAzureRM: 'terraform-spn-akspipeline'
+              args: '-auto-approve'
